@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Linkr</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Runtime config. MUST load before app.js. See config.js. -->
+  <script src="config.js"></script>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>Linkr</h1>
+      <p class="tagline">Paste a long URL. Get a short one.</p>
+    </header>
+
+    <form id="shorten-form" autocomplete="off">
+      <input
+        id="url"
+        name="url"
+        type="url"
+        placeholder="https://example.com/a/very/long/path"
+        required
+      />
+      <input
+        id="code"
+        name="code"
+        type="text"
+        placeholder="custom code (optional)"
+        pattern="[A-Za-z0-9_-]{1,32}"
+      />
+      <button type="submit" id="submit">Shorten</button>
+    </form>
+
+    <p id="message" class="message" role="status" hidden></p>
+
+    <section>
+      <div class="section-head">
+        <h2>Recent links</h2>
+        <span id="stats" class="stats"></span>
+      </div>
+      <table id="links">
+        <thead>
+          <tr><th>Short</th><th>Target</th><th class="num">Hits</th><th></th></tr>
+        </thead>
+        <tbody id="links-body">
+          <tr class="empty"><td colspan="4">Loading…</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      <span id="build">build: unknown</span>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
