@@ -121,6 +121,74 @@ integration stage once compose exists:
 LINKR_TEST_DATABASE_URL=postgresql+psycopg://linkr:linkr@localhost:5432/linkr_test pytest
 ```
 
+## Notes for containerization (for `DEVOPS-01`)
+
+Everything below was **verified on this codebase**, not assumed. It exists so the
+Dockerfile can be built once rather than debugged twice.
+
+### What the runtime image actually needs
+
+| Include | Leave out |
+|---|---|
+| `app/` | `tests/` |
+| the installed dependencies from `requirements.txt` | `requirements-dev.txt` (pytest, httpx, ruff) |
+| | `pyproject.toml` (test/lint config only) |
+| | `.env.example` |
+
+### No compiler, and no `libpq` system package
+
+We depend on **`psycopg[binary]`**, whose wheel vendors its own libpq (verified:
+the installed `psycopg_binary.libs/` contains a bundled `libpq`). So:
+
+- no `gcc`/`build-essential` in the build stage,
+- no `libpq5` / `libpq-dev` in the runtime stage,
+- copying installed site-packages between stages is safe — nothing links against
+  a system library that would be missing in the runtime layer.
+
+If anyone ever switches to plain `psycopg` or `psycopg[c]`, **both** of those
+come back. Please don't change that extra without telling DEV.
+
+### Two env vars the image should set
+
+**`PYTHONUNBUFFERED=1` — please set this. It is not cargo cult.** Verified
+behaviour of our actual stack:
+
+| stream | who writes there | buffering when not a TTY |
+|---|---|---|
+| `stderr` | our app logs, uvicorn startup/error logs | **line-buffered** — appears immediately |
+| `stdout` | **uvicorn access logs** | **block-buffered (~8 KB)** |
+
+So our own logs are fine either way, but **access logs can sit in a buffer and
+are lost outright if the container is killed** — which is precisely when you most
+want them. One env var closes it.
+
+**`PYTHONDONTWRITEBYTECODE=1`** — stops Python writing `__pycache__` into the
+image at runtime. Keeps the layer clean and removes the only write the process
+ever attempts.
+
+### Read-only root filesystem: confirmed compatible
+
+Grepped the whole of `app/` for file writes — **there are none.** No `open()` for
+writing, no `FileHandler`, no temp files, no local state; all state is in
+Postgres and all logs go to stdout/stderr. With `PYTHONDONTWRITEBYTECODE=1` the
+process needs **no writable path at all**.
+
+That means OPS's Stage-2 `read-only rootfs` MUST costs us nothing and needs no
+`tmpfs` mount. Same reasoning makes **distroless viable at Stage 2** — the app
+never shells out.
+
+### Probes
+
+- **liveness** → `GET /health` (never touches the DB)
+- **readiness / LB target group / deploy gate** → `GET /ready` (503 when the DB is down)
+
+### Reproducibility caveat — read before you pin the build
+
+`requirements.txt` pins our **9 direct** dependencies. It does **not** pin the
+**21 transitive** ones underneath them (`starlette`, `anyio`, `h11`, `pydantic_core`,
+`typing_extensions`, …). Two builds from the identical commit can therefore
+resolve different transitive versions. Tracked as **`DEV-05`** — see the channel.
+
 ## What DEV has deliberately NOT built
 
 These are yours, and we're not going to guess at them:
