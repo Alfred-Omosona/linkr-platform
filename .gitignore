@@ -1,0 +1,41 @@
+# ---- Secrets: never commit these ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials
+.aws/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ---- Terraform (Stage 2) ----
+.terraform/
+*.tfstate
+*.tfstate.*
+# NOTE: .terraform.lock.hcl is deliberately NOT ignored. The provider lock file
+# belongs in version control — it pins provider versions so this machine, any
+# other machine, and CI all resolve identically. Ignoring it reintroduces
+# "works on my laptop" at the infrastructure layer. (OPS #003, DEVOPS-05)
+terraform.tfvars
+*.auto.tfvars
+!example.tfvars
+
+# ---- Frontend (if the web tier gains a build step) ----
+node_modules/
+dist/
+.next/
+
+# ---- Logs / local data ----
+*.log
+pgdata/
