@@ -1,0 +1,46 @@
+# Line-ending policy for this repository.
+#
+# WHY THIS FILE EXISTS
+# This repo is developed on Windows, where `core.autocrlf=true` rewrites LF to
+# CRLF on checkout. The images we build run Linux. A file with a shebang and
+# CRLF endings that is COPYed into a container fails at runtime with an error
+# that tells you nothing useful:
+#
+#     exec /app/entrypoint.sh: no such file or directory
+#
+# The file is right there. The kernel is looking for an interpreter literally
+# named "/bin/sh\r", which does not exist. This is the single most common
+# Windows -> Docker failure, and it costs people hours the first time.
+#
+# `.gitattributes` overrides `core.autocrlf` per-repository, so the repo behaves
+# identically on Windows, Linux, CI runners, and inside images — regardless of
+# any individual developer's global git config.
+
+# Default: normalize every text file to LF, in the repo AND the working copy.
+* text=auto eol=lf
+
+# Belt and braces on the files that actually break containers when wrong.
+*.sh          text eol=lf
+*.bash        text eol=lf
+Dockerfile    text eol=lf
+*.dockerfile  text eol=lf
+docker-entrypoint* text eol=lf
+entrypoint*   text eol=lf
+*.yml         text eol=lf
+*.yaml        text eol=lf
+*.py          text eol=lf
+
+# Windows-native scripts genuinely want CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Never transform binaries.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
