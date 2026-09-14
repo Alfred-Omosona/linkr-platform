@@ -13,7 +13,7 @@
 # Windows -> Docker failure, and it costs people hours the first time.
 #
 # `.gitattributes` overrides `core.autocrlf` per-repository, so the repo behaves
-# identically on Windows, Linux, CI runners, and inside images — regardless of
+# identically on Windows, Linux, CI runners, and inside images, regardless of
 # any individual developer's global git config.
 
 # Default: normalize every text file to LF, in the repo AND the working copy.
