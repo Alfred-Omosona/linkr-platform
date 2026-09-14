@@ -1,4 +1,4 @@
-"""Configuration — everything comes from the environment, nothing is hardcoded.
+"""Configuration. Everything comes from the environment. Nothing is hardcoded.
 
 All variables use the `LINKR_` prefix so they can't collide with anything else on
 the host. Defaults here are LOCAL-DEV defaults only; every environment (staging,
@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     base_url: str = "http://localhost:8000"
 
     # --- operational ------------------------------------------------------
-    env: str = "local"          # local | staging | prod — surfaced on /health
+    env: str = "local"          # local | staging | prod. Surfaced on /health
     version: str = "0.1.0"      # set by the build, not by hand
     git_sha: str = "unknown"    # set by the build so we can tell what's deployed
     log_level: str = "info"

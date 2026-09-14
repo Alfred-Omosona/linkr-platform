@@ -1,4 +1,4 @@
-/* Linkr frontend — no framework, no build step. Plain static files. */
+/* Linkr frontend. No framework, no build step. Plain static files. */
 
 const API = (window.LINKR_CONFIG && window.LINKR_CONFIG.apiBase) || "";
 
@@ -30,7 +30,7 @@ async function api(path, options) {
         detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
       }
     } catch {
-      /* non-JSON error body — keep the status line */
+      /* non-JSON error body, so keep the status line */
     }
     throw new Error(detail);
   }

@@ -1,12 +1,12 @@
-"""Linkr API — URL shortener.
+"""Linkr API. URL shortener.
 
 Owned by DEV. Packaging, runtime, and deployment belong to DEVOPS: this module
 never assumes a port, a hostname, a container, or a cloud.
 
 Operational endpoints:
-  GET /health  — liveness. Never touches the database. Use for restart checks.
-  GET /ready   — readiness. Hits the DB; returns 503 when it can't. Use for LB
-                 target-group health checks and rollout gates.
+  GET /health: liveness. Never touches the database. Use for restart checks.
+  GET /ready:  readiness. Hits the DB and returns 503 when it can't. Use for LB
+               target-group health checks and rollout gates.
 """
 
 import logging
@@ -36,7 +36,7 @@ log = logging.getLogger("linkr")
 
 ALPHABET = string.ascii_letters + string.digits
 
-# Paths the router owns — a vanity code can never shadow one of these.
+# Paths the router owns. A vanity code can never shadow one of these.
 RESERVED_CODES = {
     "api", "health", "ready", "docs", "redoc", "openapi.json",
     "metrics", "static", "favicon.ico", "robots.txt",
@@ -132,7 +132,7 @@ def create_link(payload: LinkCreate, db: Session = Depends(get_db)) -> LinkOut:
             db.commit()
         except IntegrityError:
             db.rollback()
-            # A taken code is a normal outcome, not an internal fault — don't
+            # A taken code is a normal outcome, not an internal fault, so don't
             # chain the driver error into the response.
             raise HTTPException(
                 status_code=409, detail="that code is already taken"
@@ -221,5 +221,5 @@ def follow(
     if target is None:
         raise HTTPException(status_code=404, detail="unknown short code")
 
-    # 307, not 301 — a cached permanent redirect makes a link impossible to fix.
+    # 307, not 301. A cached permanent redirect makes a link impossible to fix.
     return RedirectResponse(url=target, status_code=307)

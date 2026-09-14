@@ -1,6 +1,6 @@
 """Database engine + session wiring.
 
-Creating the Engine does not open a connection — the first request does. That is
+Creating the Engine does not open a connection. The first request does. That is
 deliberate: the container must start even if Postgres is not up yet, and report
 its state through /ready instead of crash-looping.
 """
@@ -31,7 +31,7 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False
 
 
 def get_db() -> Iterator[Session]:
-    """FastAPI dependency — one session per request."""
+    """FastAPI dependency. One session per request."""
     db = SessionLocal()
     try:
         yield db

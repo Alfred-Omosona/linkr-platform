@@ -1,4 +1,4 @@
-"""Create the schema. Idempotent — safe to run on every deploy.
+"""Create the schema. Idempotent, so it is safe to run on every deploy.
 
     python -m app.initdb
 
@@ -20,7 +20,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from .db import Base, engine
-from .models import Link  # noqa: F401 — imported so it registers on Base.metadata
+from .models import Link  # noqa: F401. Imported so it registers on Base.metadata
 
 log = logging.getLogger("linkr.initdb")
 

@@ -1,7 +1,7 @@
 """Test fixtures.
 
 By default the suite runs against in-memory SQLite so `pytest` works on a bare
-machine with no database — that keeps the CI unit-test stage fast and
+machine with no database. That keeps the CI unit-test stage fast and
 dependency-free.
 
 To run the same suite against real Postgres (recommended as a separate

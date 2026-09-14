@@ -27,5 +27,5 @@ class Link(Base):
         DateTime(timezone=True), nullable=True
     )
 
-    def __repr__(self) -> str:  # pragma: no cover - debugging aid
+    def __repr__(self) -> str:  # pragma: no cover. Debugging aid.
         return f"<Link {self.code} -> {self.target_url[:40]}>"

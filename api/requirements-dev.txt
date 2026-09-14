@@ -1,4 +1,4 @@
-# Test/lint dependencies. NOT needed in the runtime image — install these only
+# Test/lint dependencies. NOT needed in the runtime image. Install these only
 # in the CI test stage, so the shipped image stays small.
 -r requirements.txt
 pytest==8.3.4
