@@ -23,10 +23,10 @@ htmlcov/
 .terraform/
 *.tfstate
 *.tfstate.*
-# NOTE: .terraform.lock.hcl is deliberately NOT ignored. The provider lock file
-# belongs in version control — it pins provider versions so this machine, any
-# other machine, and CI all resolve identically. Ignoring it reintroduces
-# "works on my laptop" at the infrastructure layer. (OPS #003, DEVOPS-05)
+# NOTE Keep Terraform's dependency lock file committed so provider versions stay consistent.
+# Do not add .terraform.lock.hcl to this .gitignore. 
+#The provider lock file belongs in version control — it pins provider versions so this machine, any other machine, and CI all resolve identically. 
+#Ignoring it reintroduces "works on my laptop" at the infrastructure layer. (OPS #003, DEVOPS-05)
 terraform.tfvars
 *.auto.tfvars
 !example.tfvars
