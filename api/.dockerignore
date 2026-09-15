@@ -1,0 +1,46 @@
+# ============================================================
+# Development-only files
+# These files are useful during development and testing,
+# but they are not needed inside the production Docker image.
+# ============================================================
+
+# Unit and integration tests
+tests/
+
+# Development-only Python dependencies
+requirements-dev.txt
+
+# Python project/tool configuration
+pyproject.toml
+
+# Example environment configuration
+.env.example
+
+
+# ============================================================
+# Python junk and cache files
+# Generated automatically by Python and development tools.
+# They are unnecessary inside the Docker image.
+# ============================================================
+
+# Python bytecode cache directories
+__pycache__/
+
+# Compiled Python files
+*.py[cod]
+
+# Pytest cache
+.pytest_cache/
+
+# Ruff linter cache
+.ruff_cache/
+
+
+# ============================================================
+# Environment files / secrets
+# Never copy real environment variables or secrets into
+# the Docker image or Docker build context.
+# ============================================================
+
+.env
+.env.*
