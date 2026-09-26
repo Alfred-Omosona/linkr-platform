@@ -1,0 +1,58 @@
+x-linkr-build: &linkr-build
+  context: ./api
+  args:
+    GIT_SHA: ${GIT_SHA:-dev}
+
+x-db-url: &db-url postgresql+psycopg://linkr:linkr@db:5432/linkr
+
+services:
+  db:
+    image: postgres:16
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: linkr
+      POSTGRES_PASSWORD: linkr
+      POSTGRES_DB: linkr
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U linkr -d linkr"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  api:
+    build: *linkr-build
+    image: linkr-api:local
+    environment:
+      LINKR_DATABASE_URL: *db-url
+      LINKR_BASE_URL: http://localhost:8000
+      LINKR_ENV: local
+      LINKR_CORS_ORIGINS: ""
+    ports:
+      - "8000:8000"
+    read_only: true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+    depends_on:
+      db:
+        condition: service_healthy
+      init:
+        condition: service_completed_successfully
+
+  init:
+    build: *linkr-build
+    image: linkr-api:local
+    command: ["python", "-m", "app.initdb"]
+    environment:
+      LINKR_DATABASE_URL: *db-url
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
