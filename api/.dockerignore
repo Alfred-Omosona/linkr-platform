@@ -15,7 +15,9 @@ pyproject.toml
 
 # Example environment configuration
 .env.example
-
+# My docker image does not need these
+.venv/
+htmlcov/
 
 # ============================================================
 # Python junk and cache files
