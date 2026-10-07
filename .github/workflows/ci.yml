@@ -18,9 +18,12 @@ jobs:
           python-version: "3.12"
 
       - name: Install lint and test dependencies
-        run: pip install --only-binary :all: -r requirements.txt
+        run: pip install --only-binary :all: -r requirements-dev.txt
         working-directory: api
 
       - name: Run ruff
         run: ruff check .
+        working-directory: api
+      - name: Run tests
+        run: pytest
         working-directory: api
