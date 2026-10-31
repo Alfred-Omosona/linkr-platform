@@ -28,3 +28,17 @@ jobs:
       - name: Run tests
         run: pytest
         working-directory: api
+  build:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Build the api image
+        run: |
+          docker build \
+            --build-arg GIT_SHA="${GITHUB_SHA: :7}" \
+            --tag linkr-api:ci \
+            api
+  
