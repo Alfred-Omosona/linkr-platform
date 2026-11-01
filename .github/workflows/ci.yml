@@ -1,50 +1,36 @@
-name: CI
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install lint and test dependencies
-        run: |
-          pip install --only-binary :all: -r requirements-dev.txt
-        working-directory: api
-
-      - name: Run ruff
-        run: ruff check .
-        working-directory: api
-      - name: Run tests
-        run: pytest
-        working-directory: api
   build:
     needs: lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
+
+      - name: Work out the short commit SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
 
       - name: Build the api image
         run: |
           docker build \
-            --build-arg GIT_SHA="${GITHUB_SHA: :7}" \
+            --build-arg GIT_SHA="$SHORT_SHA" \
             --tag linkr-api:ci \
             api
+
       - name: Scan the image for known vulnerabilities
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: linkr-api:ci
           severity: HIGH,CRITICAL
           exit-code: "0"
-  
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push'
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push the image to GHCR, tagged by commit
+        if: github.event_name == 'push'
+        run: |
+          docker tag linkr-api:ci ghcr.io/alfred-omosona/linkr-api:"$SHORT_SHA"
+          docker push ghcr.io/alfred-omosona/linkr-api:"$SHORT_SHA"  
