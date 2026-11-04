@@ -9,9 +9,9 @@ RUN python -m venv /venv
 
 ENV PATH="/venv/bin:$PATH"
 
-COPY requirements.txt .
+COPY requirements.lock .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --require-hashes -r requirements.lock
 
 # ---------- Stage 2: RUNTIME, the image that ships ----------
 FROM python:3.12-slim
