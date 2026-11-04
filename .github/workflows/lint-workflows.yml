@@ -1,0 +1,15 @@
+name: Lint workflows
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Run actionlint
+        run: docker run --rm -v "$(pwd)":/repo -w /repo rhysd/actionlint:latest -color
