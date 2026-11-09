@@ -25,6 +25,8 @@ data "aws_vpc" "default" {
   default = true
 }
 
+data "aws_caller_identity" "current" {}
+
 resource "aws_security_group" "linkr_staging" {
   name        = "linkr-staging"
   description = "Linkr staging: inbound locked to the operator IP"
@@ -34,6 +36,11 @@ resource "aws_security_group" "linkr_staging" {
 variable "operator_ip_cidr" {
   type        = string
   description = "Alfred's public IP in CIDR form, e.g. 1.2.3.4/32. Never committed."
+}
+
+variable "alert_email" {
+  type        = string
+  description = "Where budget alerts are sent. Never committed."
 }
 
 resource "aws_vpc_security_group_ingress_rule" "api_from_operator" {
@@ -62,7 +69,6 @@ data "aws_ami" "al2023" {
     values = ["al2023-ami-2023.*-x86_64"]
   }
 }
-
 resource "aws_iam_role" "linkr_staging" {
   name        = "linkr-staging-ec2"
   description = "Identity worn by the Linkr staging instance"
@@ -103,7 +109,54 @@ resource "aws_instance" "linkr_staging" {
   }
 }
 
+resource "aws_budgets_budget" "linkr_monthly" {
+  name              = "Devops practice"
+  budget_type       = "COST"
+  limit_amount      = "5.0"
+  limit_unit        = "USD"
+  time_unit         = "MONTHLY"
+  billing_view_arn  = "arn:aws:billing::${data.aws_caller_identity.current.account_id}:billingview/primary"
+  time_period_start = "2026-11-01_00:00"
+  time_period_end   = "2087-06-15_00:00"
+
+  metrics = ["UnblendedCost"]
+
+  filter_expression {
+    not {
+      dimensions {
+        key    = "RECORD_TYPE"
+        values = ["Credit", "Refund"]
+      }
+    }
+  }
+
+  notification {
+    comparison_operator        = "GREATER_THAN"
+    notification_type          = "ACTUAL"
+    threshold                  = 20
+    threshold_type             = "PERCENTAGE"
+    subscriber_email_addresses = [var.alert_email]
+  }
+
+  notification {
+    comparison_operator        = "GREATER_THAN"
+    notification_type          = "ACTUAL"
+    threshold                  = 80
+    threshold_type             = "PERCENTAGE"
+    subscriber_email_addresses = [var.alert_email]
+  }
+
+  notification {
+    comparison_operator        = "GREATER_THAN"
+    notification_type          = "FORECASTED"
+    threshold                  = 100
+    threshold_type             = "PERCENTAGE"
+    subscriber_email_addresses = [var.alert_email]
+  }
+}
+
 output "staging_public_ip" {
   description = "Public IP of the staging instance"
   value       = aws_instance.linkr_staging.public_ip
 }
+
