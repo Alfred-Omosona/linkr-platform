@@ -1,0 +1,57 @@
+# Staging. Runs the image CI built, scanned and pushed to GHCR.
+# Nothing is built here. If this file ever grows a `build:` key, the thing
+# running in staging is no longer the thing CI tested.
+
+x-db-url: &db-url postgresql+psycopg://linkr:${POSTGRES_PASSWORD}@db:5432/linkr
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: linkr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: linkr
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U linkr -d linkr"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  init:
+    image: ghcr.io/alfred-omosona/linkr-api:${LINKR_IMAGE_TAG}
+    command: ["python", "-m", "app.initdb"]
+    environment:
+      LINKR_DATABASE_URL: *db-url
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    image: ghcr.io/alfred-omosona/linkr-api:${LINKR_IMAGE_TAG}
+    restart: unless-stopped
+    environment:
+      LINKR_DATABASE_URL: *db-url
+      LINKR_BASE_URL: ${LINKR_BASE_URL}
+      LINKR_ENV: staging
+      LINKR_CORS_ORIGINS: ""
+    ports:
+      - "8000:8000"
+    read_only: true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+    depends_on:
+      db:
+        condition: service_healthy
+      init:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:
