@@ -1,0 +1,11 @@
+groups:
+  - name: linkr
+    rules:
+      - alert: LinkrNotReady
+        expr: probe_success{instance="http://api:8000/ready"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Linkr is not ready"
+          description: "The /ready probe has been failing for a minute. The API cannot reach its database, so user requests are being failed right now."
