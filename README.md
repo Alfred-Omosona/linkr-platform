@@ -8,8 +8,22 @@ One reviewed change at a time.
 and handed it over as a finished v0.1. The work is everything around it: the
 image, the pipeline, the infrastructure, the guardrails.
 
-> **Status: in progress.** The unchecked boxes below aren't built yet. This README
-> says what's actually done, not what's planned.
+> **Status: the VM era is complete.** Everything in the table below is built,
+> deployed and evidenced. Nothing in it is a plan. The next phase is the same
+> platform on Kubernetes.
+
+**What is proven, with numbers rather than adjectives:**
+
+* A deploy takes **21 seconds**, of which 15.8s is the image pull. A rollback takes
+  **6 seconds**, because the previous image is already on the host. Both were timed
+  in a real drill on a live EC2 instance, not estimated. See [`RUNBOOK.md`](RUNBOOK.md).
+* `/health` reports the **exact git SHA of the running build**, baked into the image
+  at build time. A deploy cannot silently fail and still look healthy.
+* The readiness alert has been **watched firing and clearing**, by stopping the
+  database and putting it back. An alert nobody has seen fire is a belief.
+* Staging is built and destroyed from code every session. Total AWS spend across
+  the whole build is **under $5**, with the budget alarm created before the first
+  resource existed.
 
 ---
 
@@ -44,12 +58,24 @@ perfectly healthy app. A small problem turns into an outage.
 
 | | Ticket | Deliverable |
 |---|---|---|
-| 🔄 | `DEVOPS-00` | Public repo, LF-normalized, secret scanning + push protection |
-| ☐ | `DEVOPS-01` | Multi-stage Dockerfile, `python:3.12-slim`, non-root UID 10001 |
-| ☐ | `DEVOPS-02` | `docker compose` stack with healthchecks and a named volume |
-| ☐ | `DEVOPS-03` | CI: ruff → pytest → build → Trivy scan → push to GHCR by git SHA |
-| ☐ | `DEVOPS-06` | AWS cost guardrails **before** any resource exists |
-| ☐ | `DEVOPS-04` | Deploy to one AWS staging environment |
+| ✅ | `DEVOPS-00` | Public repo, LF-normalized, secret scanning + push protection |
+| ✅ | `DEVOPS-01` | Multi-stage Dockerfile, `python:3.12-slim`, non-root UID 10001 |
+| ✅ | `DEVOPS-02` | `docker compose` stack with healthchecks and a named volume |
+| ✅ | `DEVOPS-03` | CI: ruff → pytest → build → Trivy scan → push to GHCR by git SHA |
+| ✅ | `DEVOPS-06` | AWS cost guardrails **before** any resource exists |
+| ✅ | `DEVOPS-10` | Terraform: EC2, security group, scoped IAM, IMDSv2 required, cost budget adopted with `import` |
+| ✅ | `DEVOPS-04` | Deploy to AWS staging, verified end to end from outside the network |
+| ✅ | `DEVOPS-11` | Prometheus, Grafana and blackbox probing. One alert, demonstrated firing and clearing |
+| ✅ | `DEVOPS-12` | [`RUNBOOK.md`](RUNBOOK.md): deploy, verify, rollback and destroy, with measured timings |
+| 🔄 | next | The same platform on Kubernetes |
+
+Access to the staging host is **keyless**. There is no SSH key and no port 22
+rule. Operators connect through SSM Session Manager, and the instance requires
+IMDSv2.
+
+Staging is ephemeral by design, so there is no permanent URL to click. The
+evidence is the repository, the pipeline runs, and the runbook's measured
+numbers, all of which outlive the environment.
 
 ---
 
